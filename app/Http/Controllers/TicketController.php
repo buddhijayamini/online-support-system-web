@@ -68,10 +68,18 @@ class TicketController extends Controller
                 })
                 ->addColumn('status', function ($row) {
                     if (Auth::user()->type == 2) {
-                        $sel1 = '<select class="select form-control statusId">
-                        <option value="1" data-id= "' . $row->id . '" style="background-color:green">Open</option>
-                        <option value="0" data-id= "' . $row->id . '" style="background-color:red;">Close</option>
-                        </select>';
+                        if ($row->status == 1) {
+                            $sel1 = '<select class="select form-control statusId">
+                            <option value="1"  data-id= "' . $row->id . '" style="background-color:green" selected >Open</option>
+                                <option value="0"  data-id= "' . $row->id . '" style="background-color:red;">Close</option>
+                                </select>';
+                        } else {
+                            $sel1 = '<select class="select form-control statusId">
+                                <option value="1"   data-id= "' . $row->id . '" style="background-color:green"  >Open</option>
+                                <option value="0"  data-id= "' . $row->id . '" style="background-color:red;" selected>Close</option>
+                                </select>';
+                            }
+
                         return  $sel1;
                     } else {
                         if ($row->status == 1) {
@@ -174,7 +182,7 @@ class TicketController extends Controller
             }
 
             $data = [
-             'status' =>  $request->statusId,
+                'status' =>  $request->statusId,
             ];
 
             DB::beginTransaction();
