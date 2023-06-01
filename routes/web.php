@@ -14,5 +14,21 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('auth/login');
+});
+
+Auth::routes();
+
+Route::group(['middleware' => ['auth']], function () {
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/customer', [App\Http\Controllers\CustomerController::class, 'index'])->name('customer');
+Route::get('/seller', [App\Http\Controllers\SellerController::class, 'index'])->name('seller');
+
+Route::get('/ticket-create', [App\Http\Controllers\TicketController::class, 'create'])->name('ticket-create');
+Route::get('/ticket', [App\Http\Controllers\TicketController::class, 'index'])->name('ticket');
+Route::post('/ticket-save', [App\Http\Controllers\TicketController::class, 'store'])->name('ticket-save');
+
+
+
 });
