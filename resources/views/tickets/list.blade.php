@@ -153,8 +153,44 @@
             //reply msg list view
             $(document).on("click", ".replybtn", function(e) {
                 var idTicket = $(this).val();
+                replyMsgView(idTicket);
+            });
+
+            //reply msg
+            $(document).on("click", ".rplyMsg", function(e) {
+                var idTicket = $("#idTicket").val();
+                var reply = $('#msgReply').val();
 
                 $.ajax({
+                    type: "POST",
+                    url: "/ticket-reply-send",
+                    data: {
+                        _token: CSRF_TOKEN,
+                        idTicket: idTicket,
+                        reply: reply
+                    },
+                    success: function(json) {
+                        if (json.status == 500) {
+                            // $("body").LoadingOverlay("hide");
+                            Swal.fire("Error", json.message, "error");
+                        } else if (json.status == 200) {
+                            // $("body").LoadingOverlay("hide");
+                            Swal.fire("Succuss", json.message, "success");
+                            $("#msgReply").val("");
+                            replyMsgView(idTicket);
+                        }
+                    },
+                    error: function(xhr) {
+                        // $("body").LoadingOverlay("hide");
+                        Swal.fire("Error", xhr.responseText, "error");
+                    },
+                });
+            });
+
+        });
+
+        function replyMsgView(idTicket){
+            $.ajax({
                     type: "GET",
                     url: "/ticket-reply/" + idTicket,
                     success: function(json) {
@@ -165,7 +201,7 @@
                             var datetime = value.created_at;
                             var dateSplit = datetime.split("T");
                             var time = dateSplit[1].split(".000000Z");
-                            // console.log(value)
+
                             msgs +=
                                 '<div class="card">' +
                                 '<div class="card-body">' +
@@ -188,38 +224,6 @@
                         $("#msgBody").html(msgs);
                     },
                 });
-            });
-
-            //reply msg
-            $(document).on("click", ".rplyMsg", function(e) {
-                var idTicket =  $("#idTicket").val();
-                var reply = $('#msgReply').val();
-
-                $.ajax({
-                        type: "POST",
-                        url: "/ticket-reply-send",
-                        data: {
-                            _token: CSRF_TOKEN,
-                            idTicket: idTicket,
-                            reply: reply
-                        },
-                        success: function(json) {
-                            if (json.status == 500) {
-                                // $("body").LoadingOverlay("hide");
-                                Swal.fire("Error", json.message, "error");
-                            } else if (json.status == 200) {
-                                // $("body").LoadingOverlay("hide");
-                                Swal.fire("Succuss", json.message, "success");
-                                $("#msgReply").val("");
-                            }
-                        },
-                    error: function(xhr) {
-                        // $("body").LoadingOverlay("hide");
-                        Swal.fire("Error", xhr.responseText, "error");
-                    },
-            });
-            });
-
-        });
+        }
     </script>
 @endsection
