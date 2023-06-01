@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Ticket;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TicketRequest;
+use App\Models\Reply;
 use App\Repositories\Ticket\TicketInterface;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
@@ -153,34 +154,69 @@ class TicketController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(Ticket $ticket)
-    {
-        //
-    }
-
-    /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Ticket $ticket)
+    public function edit($idTicket)
     {
-        //
+        $chat = Reply::where('ticket_id', $idTicket)
+                ->with(['ticket', 'reply_user'])
+                ->get();
+
+        return response()->json([
+            'status' => 200,
+            'chat' => $chat,
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Ticket $ticket)
+    public function update(Request $request)
     {
-        //
+        try {
+            $validator =  \Validator::make($request->all(), [
+                "idTicket" => "required",
+                "reply" => "required",
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 500,
+                    'message' => "Validation Error"
+                ]);
+            }
+
+            DB::beginTransaction();
+            $data = Reply::create([
+                'ticket_id' => $request->idTicket,
+                'reply' => $request->reply,
+                'send_user_id' => Auth::user()->id,
+            ]);
+            DB::commit();
+
+            if ($data) {
+                return response()->json(
+                    [
+                        'status' => 200,
+                        'message' => "Send Reply Successfully!"
+                    ],
+                );
+            } else {
+                return  response()->json(
+                    [
+                        'status' => 500,
+                        'message' => "Send Reply Error"
+                    ],
+                );
+            }
+        } catch (Exception $e) {
+            return  response()->json(
+                [
+                    'status' => 500,
+                    'message' => $e
+                ],
+            );
+        }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Ticket $ticket)
-    {
-        //
-    }
 }
