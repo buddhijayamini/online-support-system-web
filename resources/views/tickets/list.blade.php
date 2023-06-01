@@ -21,6 +21,7 @@
                                     <thead>
                                         <tr>
                                             <th class="text-center">#</th>
+                                            <th class="text-center">Reference No</th>
                                             <th class="text-center">Name</th>
                                             <th class="text-center">Email</th>
                                             <th class="text-center">Mobile</th>
@@ -42,6 +43,36 @@
         </div>
     </div>
 
+    <!-- Modal -->
+    <div class="modal fade" id="replyMdl" tabindex="-1" role="dialog" aria-labelledby="replyModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="replyModalLabel">Reply Message</h5>
+              {{-- <button type="button" class="close btn btn-danger" data-bs-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button> --}}
+            </div>
+            <div class="modal-body">
+              <form id="replyFrm">
+                <div class="form-group">
+                  <label for="receiver" class="col-form-label">Receiver:</label>
+                  <input type="text" class="form-control" id="receiver">
+                </div>
+                <div class="form-group">
+                  <label for="messageRply" class="col-form-label">Message:</label>
+                  <textarea class="form-control" id="messageRply"></textarea>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-warning" data-bs-dismiss="modal">Close</button>
+              <button type="button" id="rplyMsg" class="btn btn-primary">Send message</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     <script type="text/javascript">
         $(document).ready(function() {
             var tbl = $('#ticketTbl').DataTable({
@@ -61,6 +92,11 @@
                         data: 'DT_RowIndex',
                         name: 'id',
                         searchable: false
+                    },
+                    {
+                        data: 'ref_no',
+                        name: 'ref_no',
+                        visible: true
                     },
                     {
                         data: 'name',
@@ -102,9 +138,9 @@
 
             // console.log($('#authId').val())
             if ($('#authId').val() == 1) {
-                tbl.columns(7).visible(false);
+                tbl.columns(8).visible(false);
             }else{
-                tbl.columns(7).visible(true);
+                tbl.columns(8).visible(true);
             }
 
         });
