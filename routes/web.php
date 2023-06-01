@@ -29,5 +29,6 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/ticket', [App\Http\Controllers\TicketController::class, 'index'])->name('ticket');
     Route::post('/ticket-save', [App\Http\Controllers\TicketController::class, 'store'])->name('ticket-save');
     Route::get('/ticket-reply/{idTicket}', [App\Http\Controllers\TicketController::class, 'edit'])->name('ticket-reply');
+    Route::post('/ticket-reply-send', [App\Http\Controllers\TicketController::class, 'update'])->name('ticket-reply-send');
 
 });

@@ -72,7 +72,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-warning" data-bs-dismiss="modal">Close</button>
-                    <button type="button" id="rplyMsg" class="btn btn-primary">Send message</button>
+                    <button type="button" id="rplyMsg" class="btn btn-primary rplyMsg">Send message</button>
                 </div>
             </div>
         </div>
@@ -80,6 +80,8 @@
 
     <script type="text/javascript">
         $(document).ready(function() {
+            var CSRF_TOKEN = $('meta[name="csrf-token"]').attr("content");
+
             var tbl = $('#ticketTbl').DataTable({
                 processing: true,
                 serverSide: true,
@@ -170,11 +172,11 @@
                                 '<label for="" class="card-title" style="color:blue">Name: </label>' +
                                 '<label for="" class="form-label" style="margin-left: 2px; color:black">&nbsp;&nbsp;' +
                                 value.reply_user.name +
-                                '</label>'+
+                                '</label>' +
                                 '</div>' +
-                                '<p class="card-text" style="padding-left: 20px !important">'+
+                                '<p class="card-text" style="padding-left: 20px !important">' +
                                 value.reply +
-                                '</p>'+
+                                '</p>' +
                                 '<span style="padding-left: 70% !important">' +
                                 dateSplit[0] +
                                 "&nbsp;|&nbsp;" +
@@ -186,6 +188,36 @@
                         $("#msgBody").html(msgs);
                     },
                 });
+            });
+
+            //reply msg
+            $(document).on("click", ".rplyMsg", function(e) {
+                var idTicket =  $("#idTicket").val();
+                var reply = $('#msgReply').val();
+
+                $.ajax({
+                        type: "POST",
+                        url: "/ticket-reply-send",
+                        data: {
+                            _token: CSRF_TOKEN,
+                            idTicket: idTicket,
+                            reply: reply
+                        },
+                        success: function(json) {
+                            if (json.status == 500) {
+                                // $("body").LoadingOverlay("hide");
+                                Swal.fire("Error", json.message, "error");
+                            } else if (json.status == 200) {
+                                // $("body").LoadingOverlay("hide");
+                                Swal.fire("Succuss", json.message, "success");
+                                $("#msgReply").val("");
+                            }
+                        },
+                    error: function(xhr) {
+                        // $("body").LoadingOverlay("hide");
+                        Swal.fire("Error", xhr.responseText, "error");
+                    },
+            });
             });
 
         });
