@@ -11,6 +11,7 @@ use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\Auth;
 use DB;
 use Exception;
+use Illuminate\Support\Facades\Mail;
 use Validator;
 use Illuminate\Support\Str;
 
@@ -75,10 +76,14 @@ class TicketController extends Controller
                     return $row->created_at;
                 })
                 ->addColumn('action', function ($row) {
-                    $btn = '<button type="button"  class="btn btn-primary py-1 px-1 replybtn" data-bs-toggle="modal"
-                    data-bs-target="#replyMdl" data-bs-toggle="dropdown"
-                    aria-expanded="false" value = "' . $row->id . '">
-                    <i class="fa fa-reply"></i> Reply</button>';
+                    if (Auth::user()->type == 1) {
+                        $btn = '';
+                    } else {
+                        $btn = '<button type="button"  class="btn btn-primary py-1 px-1 replybtn" data-bs-toggle="modal"
+                        data-bs-target="#replyMdl" data-bs-toggle="dropdown"
+                        aria-expanded="false" value = "' . $row->id . '">
+                        <i class="fa fa-reply"></i> Reply</button>';
+                    }
                     return $btn;
                 })
                 ->rawColumns(['name', 'email', 'mobile', 'status', 'datetime', 'action'])
@@ -105,7 +110,12 @@ class TicketController extends Controller
             $validatedData = $request->validated();
 
             $validatedData["sender_id"] = Auth::user()->id;
-            $validatedData["receiver_id"] = 2; // only make with 1 seller
+
+            if(Auth::user()->type == 2){
+                $validatedData["receiver_id"] = 3; // only make with 1 customer
+            }else{
+                 $validatedData["receiver_id"] = 2; // only make with 1 seller
+            }
 
             $random = Str::random(10);
             $validatedData["ref_no"]  = 'ref-' . $random;
@@ -113,6 +123,9 @@ class TicketController extends Controller
             DB::beginTransaction();
             $data = $this->ticketInterface->store($validatedData);
             DB::commit();
+
+            //send email
+          //  Mail::to($request->email)->send($request->description);
 
             if ($data) {
                 return response()->json(

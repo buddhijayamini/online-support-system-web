@@ -113,12 +113,14 @@
                 // $.LoadingOverlay("show");
 
                 var description = $("#description").val();
+                var email = $("#email").val();
 
                 $.ajax({
                     type: "POST",
                     url: "/ticket-save",
                     data: {
                         _token: CSRF_TOKEN,
+                        email:email,
                         description: description,
                     },
                     success: function(json) {
