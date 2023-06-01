@@ -187,43 +187,75 @@
                 });
             });
 
-        });
+            $(document).on('change','.statusId',function(){
+                var idTicket = $(this).find('option:selected').attr('data-id');
+                var statusId = $(this).val();
 
-        function replyMsgView(idTicket){
-            $.ajax({
-                    type: "GET",
-                    url: "/ticket-reply/" + idTicket,
+                $.ajax({
+                    type: "PUT",
+                    url: "/ticket-status-update/"+idTicket,
+                    data: {
+                        _token: CSRF_TOKEN,
+                        statusId: statusId
+                    },
                     success: function(json) {
-                        $("#idTicket").val(idTicket);
-                        var msgs = "";
-
-                        json.chat.forEach(function(value) {
-                            var datetime = value.created_at;
-                            var dateSplit = datetime.split("T");
-                            var time = dateSplit[1].split(".000000Z");
-
-                            msgs +=
-                                '<div class="card">' +
-                                '<div class="card-body">' +
-                                '<label for="" class="card-title" style="color:blue">Name: </label>' +
-                                '<label for="" class="form-label" style="margin-left: 2px; color:black">&nbsp;&nbsp;' +
-                                value.reply_user.name +
-                                '</label>' +
-                                '</div>' +
-                                '<p class="card-text" style="padding-left: 20px !important">' +
-                                value.reply +
-                                '</p>' +
-                                '<span style="padding-left: 70% !important">' +
-                                dateSplit[0] +
-                                "&nbsp;|&nbsp;" +
-                                time[0] +
-                                "</span>" +
-                                "</div><br>";
-                        });
-
-                        $("#msgBody").html(msgs);
+                        if (json.status == 500) {
+                            // $("body").LoadingOverlay("hide");
+                            Swal.fire("Error", json.message, "error");
+                        } else if (json.status == 200) {
+                            // $("body").LoadingOverlay("hide");
+                            Swal.fire("Succuss", json.message, "success");
+                        }
+                    },
+                    error: function(xhr) {
+                        // $("body").LoadingOverlay("hide");
+                        Swal.fire("Error", xhr.responseText, "error");
                     },
                 });
+            });
+
+        });
+
+        function replyMsgView(idTicket) {
+            $.ajax({
+                type: "GET",
+                url: "/ticket-reply/" + idTicket,
+                success: function(json) {
+                    $("#idTicket").val(idTicket);
+                    var msgs = "";
+
+                    if (json.ticket.status == 0) {
+                        $('#msgReply').attr('disabled', true);
+                        $('#rplyMsg').attr('disabled', true);
+                    }
+
+                    json.chat.forEach(function(value) {
+                        var datetime = value.created_at;
+                        var dateSplit = datetime.split("T");
+                        var time = dateSplit[1].split(".000000Z");
+
+                        msgs +=
+                            '<div class="card">' +
+                            '<div class="card-body">' +
+                            '<label for="" class="card-title" style="color:blue">Name: </label>' +
+                            '<label for="" class="form-label" style="margin-left: 2px; color:black">&nbsp;&nbsp;' +
+                            value.reply_user.name +
+                            '</label>' +
+                            '</div>' +
+                            '<p class="card-text" style="padding-left: 20px !important">' +
+                            value.reply +
+                            '</p>' +
+                            '<span style="padding-left: 70% !important">' +
+                            dateSplit[0] +
+                            "&nbsp;|&nbsp;" +
+                            time[0] +
+                            "</span>" +
+                            "</div><br>";
+                    });
+
+                    $("#msgBody").html(msgs);
+                },
+            });
         }
     </script>
 @endsection

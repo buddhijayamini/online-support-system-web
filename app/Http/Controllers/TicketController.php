@@ -67,10 +67,18 @@ class TicketController extends Controller
                     }
                 })
                 ->addColumn('status', function ($row) {
-                    if ($row->status == 1) {
-                        return '<label style="color:green"><b>Open</b></label>';
+                    if (Auth::user()->type == 2) {
+                        $sel1 = '<select class="select form-control statusId">
+                        <option value="1" data-id= "' . $row->id . '" style="background-color:green">Open</option>
+                        <option value="0" data-id= "' . $row->id . '" style="background-color:red;">Close</option>
+                        </select>';
+                        return  $sel1;
                     } else {
-                        return '<label style="color:red;"><b>Close</b></label>';
+                        if ($row->status == 1) {
+                            return '<label style="color:green"><b>Open</b></label>';
+                        } else {
+                            return '<label style="color:red;"><b>Close</b></label>';
+                        }
                     }
                 })
                 ->addColumn('datetime', function ($row) {
@@ -111,12 +119,7 @@ class TicketController extends Controller
             $validatedData = $request->validated();
 
             $validatedData["sender_id"] = Auth::user()->id;
-
-            if(Auth::user()->type == 2){
-                $validatedData["receiver_id"] = 3; // only make with 1 customer
-            }else{
-                 $validatedData["receiver_id"] = 2; // only make with 1 seller
-            }
+            $validatedData["receiver_id"] = 2; // only make with 1 seller
 
             $random = Str::random(10);
             $validatedData["ref_no"]  = 'ref-' . $random;
@@ -126,7 +129,7 @@ class TicketController extends Controller
             DB::commit();
 
             //send email
-          //  Mail::to($request->email)->send($request->description);
+            //  Mail::to($request->email)->send($request->description);
 
             if ($data) {
                 return response()->json(
@@ -154,17 +157,70 @@ class TicketController extends Controller
     }
 
     /**
+     * Update the specified resource in storage.
+     */
+    public function updateTicket(Request $request, $idTicket)
+    {
+        try {
+            $validator =  \Validator::make($request->all(), [
+                "statusId" => "required",
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 500,
+                    'message' => "Validation Error"
+                ]);
+            }
+
+            $data = [
+             'status' =>  $request->statusId,
+            ];
+
+            DB::beginTransaction();
+            $data = $this->ticketInterface->update($idTicket, $data);
+            DB::commit();
+
+            if ($data) {
+                return response()->json(
+                    [
+                        'status' => 200,
+                        'message' => "Update Ticket Successfully!"
+                    ],
+                );
+            } else {
+                return  response()->json(
+                    [
+                        'status' => 500,
+                        'message' => "Update Ticket Error"
+                    ],
+                );
+            }
+        } catch (Exception $e) {
+            return  response()->json(
+                [
+                    'status' => 500,
+                    'message' => $e
+                ],
+            );
+        }
+    }
+
+    /**
      * Show the form for editing the specified resource.
      */
     public function edit($idTicket)
     {
         $chat = Reply::where('ticket_id', $idTicket)
-                ->with(['ticket', 'reply_user'])
-                ->get();
+            ->with(['ticket', 'reply_user'])
+            ->get();
+
+        $ticket = Ticket::find($idTicket);
 
         return response()->json([
             'status' => 200,
             'chat' => $chat,
+            'ticket' => $ticket,
         ]);
     }
 
@@ -218,5 +274,4 @@ class TicketController extends Controller
             );
         }
     }
-
 }
